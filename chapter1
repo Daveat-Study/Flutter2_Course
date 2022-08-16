@@ -1,0 +1,16 @@
+16/Aug/22
+
+2. What is flutter?
+    + Flutter: is tool that allows you to build native cross-platform (iOS, Android) apps with one programming language and codebase.
+
+    + Flutter is combination of 2 major things: 
+        1. A SDK (Software Development Kit): a collection of tools that allows you to write one codebase or use one codebase with one programming language.
+        - Tools to compile your code to native machine code + develop with ease.
+        
+        2. A Framework/ Widget Library: Re-usable UI building blocks (= widgets), utility functions, packages.
+
+        3. Dart? : is focused on frontend (mobile apps, web) user interface (UI) development.
+
+            - Object-oriented & Strongly Typed
+            - Syntax is like a mixuter of JavaScript, Java, C#
+-------------------
