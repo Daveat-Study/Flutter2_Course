@@ -1,5 +1,7 @@
 # abstraction
 
+Link learning https://medium.com/flutter-community/abstraction-in-flutter-what-is-it-how-can-it-speed-up-my-development-da3c50532568
+
 A new Flutter project.
 
 ## Getting Started
