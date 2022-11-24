@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
@@ -77,6 +79,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final GlobalKey webViewKey = GlobalKey();
 
+  Timer? _timer;
+
   InAppWebViewController? webViewController;
   InAppWebViewGroupOptions options = InAppWebViewGroupOptions(
       crossPlatform: InAppWebViewOptions(
@@ -98,25 +102,17 @@ class _MyHomePageState extends State<MyHomePage> {
   HeadlessInAppWebView? _headlessInAppWebView;
 
   void _incrementCounter() async {
-    // await _headlessInAppWebView!.webViewController.evaluateJavascript(source: "/Users/daveat/Documents/webview_flutter/typescript/src/index.js").then((value) {
-    //   print("_headlessInAppWebView webViewController $value");
-    // });
-    await rootBundle.loadString("typescript/dist/main.js").then((value) async {
-      print("value $value");
-
-      await webViewController!.evaluateJavascript(source: 
-        value
-      ).then((evaluateJavascript) {
-        print("evaluateJavascript $evaluateJavascript");
+    // settings.connect('wss://rpc0.selendra.org')
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      _timer = timer;
+      setState(() {
+        
       });
     });
-    // (handlerName: 'handlerFoo', callback: (args) {
-    //   print(args);
-    //   // return data to the JavaScript side!
-    //   return {
-    //     'bar': 'bar_value', 'baz': 'baz_value'
-    //   };
-    // });
+    await webViewController!.evaluateJavascript(source: "decrypt.myMyDecrypt()").then((value) {
+      print(value);
+      if (value.containsKey("message")) _timer!.cancel();
+    });
   }
 
   @override
@@ -145,57 +141,67 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: InAppWebView(
-        initialData: InAppWebViewInitialData(
-          data: """
-            <!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-                </head>
-                <body>
-                    <h1>JavaScript Handlers</h1>
-                    <script>
-                        window.addEventListener("flutterInAppWebViewPlatformReady", function(event) {
-                            window.flutter_inappwebview.callHandler('handlerFoo')
-                              .then(function(result) {
-                                // print to the console the data coming
-                                // from the Flutter side.
-                                console.log(JSON.stringify(result));
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+      
+            SizedBox(
+              height: MediaQuery.of(context).size.height / 2,
+              child: InAppWebView(
+                initialData: InAppWebViewInitialData(
+                  data: """
+                  
+                    <!DOCTYPE html>
+                    <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+                        </head>
+                        <body>
+                            <h1>JavaScript Handlers</h1>
+                            // <script>
+                  
+                            //   window.addEventListener("flutterInAppWebViewPlatformReady", function(event) {
                                 
-                                window.flutter_inappwebview
-                                  .callHandler('handlerFooWithArgs', 1, true, ['bar', 5], {foo: 'baz'}, result);
-                            });
-                        });
-                    </script>
-                </body>
-            </html>
-          """
+                            //     myFunction("Fuck You");
+                            //   });
+                  
+                            // </script>
+                        </body>
+                    </html>
+                  
+                  """
+                ),
+                initialOptions: options,
+                onWebViewCreated: (controller) async {
+                  await controller.clearCache();
+                },
+                onLoadStop: (controller, uri) async {
+                  
+                  webViewController = controller;
+                  
+                  // final bundle = await rootBundle.loadString("typescript/decrypt_evm_wallet.js");
+                  // print("bundle ${bundle}");
+                  // String js = """
+                  //   function myFunction(){
+                  //     alert("Fuck hello");
+                  //   }
+                  // """;
+                  
+                  await webViewController!.injectJavascriptFileFromAsset(assetFilePath: "typescript/main.js");
+                },
+                
+                onConsoleMessage: (controller, consoleMessage) {
+                  print(consoleMessage);
+                  // it will print: {message: {"bar":"bar_value","baz":"baz_value"}, messageLevel: 1}
+                },
+              ),
+            ),
+      
+            Text(_timer == null ? "0" : _timer!.tick.toString())
+          ],
         ),
-        initialOptions: options,
-        onWebViewCreated: (controller) async {
-          
-          await controller.android.clearHistory();
-          print("controller ${controller.ios}");
-          webViewController = controller;
-          // webViewController!.addJavaScriptHandler(handlerName: 'handlerFoo', callback: (args) {
-          //   // return data to the JavaScript side!
-          //   return {
-          //     'bar': 'bar_value', 'baz': 'baz_value'
-          //   };
-          // });
-
-          // webViewController!.addJavaScriptHandler(handlerName: 'handlerFooWithArgs', callback: (args) {
-          //   print(args);
-          //   // it will print: [1, true, [bar, 5], {foo: baz}, {bar: bar_value, baz: baz_value}]
-          // });
-        },
-        
-        onConsoleMessage: (controller, consoleMessage) {
-          print(consoleMessage);
-          // it will print: {message: {"bar":"bar_value","baz":"baz_value"}, messageLevel: 1}
-        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
