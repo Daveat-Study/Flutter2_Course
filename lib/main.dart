@@ -86,33 +86,47 @@ class _MyHomePageState extends State<MyHomePage> {
       crossPlatform: InAppWebViewOptions(
         useShouldOverrideUrlLoading: true,
         mediaPlaybackRequiresUserGesture: false,
+        clearCache: true
       ),
       android: AndroidInAppWebViewOptions(
         useHybridComposition: true,
+        clearSessionCache: true
       ),
       ios: IOSInAppWebViewOptions(
         allowsInlineMediaPlayback: true,
-      ));
+      )
+    );
 
   late PullToRefreshController pullToRefreshController;
   String url = "";
   double progress = 0;
   final urlController = TextEditingController();
-
+  
   HeadlessInAppWebView? _headlessInAppWebView;
 
   void _incrementCounter() async {
-    // settings.connect('wss://rpc0.selendra.org')
-    Timer.periodic(Duration(seconds: 1), (timer) {
-      _timer = timer;
-      setState(() {
-        
-      });
+
+
+    // var result = await webViewController!.callAsyncJavaScript(
+    //   functionBody: 
+    // );
+    // print(result?.value); // int
+
+    // dynamic d = await webViewController!.evaluateJavascript(source: """
+    //   decrypt.decryptZin('123')
+    // """);
+
+    webViewController!.addJavaScriptHandler(handlerName: """
+      window.flutter_inappwebview.callHandler('test', 'Text from Javascript').then(function(result) {
+          console.log(result);
+        });
+    """, callback: (argu) {
+      
     });
-    await webViewController!.evaluateJavascript(source: "decrypt.myMyDecrypt()").then((value) {
-      print(value);
-      if (value.containsKey("message")) _timer!.cancel();
-    });
+
+    // .then((value) {
+    //   print("add $value");
+    // })
   }
 
   @override
@@ -160,14 +174,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         </head>
                         <body>
                             <h1>JavaScript Handlers</h1>
-                            // <script>
-                  
-                            //   window.addEventListener("flutterInAppWebViewPlatformReady", function(event) {
-                                
-                            //     myFunction("Fuck You");
-                            //   });
-                  
-                            // </script>
                         </body>
                     </html>
                   
@@ -180,16 +186,49 @@ class _MyHomePageState extends State<MyHomePage> {
                 onLoadStop: (controller, uri) async {
                   
                   webViewController = controller;
-                  
-                  // final bundle = await rootBundle.loadString("typescript/decrypt_evm_wallet.js");
+                  final bundle = await rootBundle.loadString("typescript/main.js");
                   // print("bundle ${bundle}");
                   // String js = """
                   //   function myFunction(){
                   //     alert("Fuck hello");
                   //   }
                   // """;
+                  // await webViewController!.injectJavascriptFileFromAsset(assetFilePath: "typescript/main.js");
+                  await webViewController!.evaluateJavascript(source: bundle);
+                  // decrypt.decryptZin('123');
+
+                    // return await new Promise( async (resolve, reject) => {
+                    //   let promise = await decrypt.decryptZin('123');
+                    //   console.log("decrypting ting");
+                    //   resolve(promise);
+                    // });
+                  await webViewController!.callAsyncJavaScript(functionBody: """
+                    return await decrypt.decryptZin('123');
+                  """).then((value) {
+                    print("Hello $value");
+                  });
+
+                  // await webViewController!.evaluateJavascript(source: "decrypt.decryptZin('123')").then((value) {
+                  //   print("Fuck $value");
+                  // });
                   
-                  await webViewController!.injectJavascriptFileFromAsset(assetFilePath: "typescript/main.js");
+                  // final b = await rootBundle.loadString("typescript/main.js");
+                  // print(b);
+
+                  // controller.addJavaScriptHandler(handlerName: 'flutterInAppWebViewPlatformReady', callback: (args) {
+                  //   // print arguments coming from the JavaScript side!
+                  //   print(args);
+
+                  //   // return data to the JavaScript side!
+                  //   return {
+                  //     'bar': 'bar_value', 'baz': 'baz_value'
+                  //   };
+                  // });
+                  
+                  // var result = await controller.callAsyncJavaScript(
+                  //   functionBody: """decrypt.myMyDecrypt()"""
+                  // );
+
                 },
                 
                 onConsoleMessage: (controller, consoleMessage) {
